@@ -1,0 +1,89 @@
+from math import log
+
+n1 = 23
+n2 = 28
+N1 = sum(map(int, """3
+1
+1
+7
+1
+1
+7
+16
+1
+1
+6
+2
+2
+2
+3
+10
+2
+1
+8
+1
+1
+1
+1
+""".split()))
+N2 = sum(map(int, """1
+1
+1
+1
+1
+1
+1
+1
+4
+4
+1
+6
+10
+2
+3
+1
+4
+1
+1
+2
+1
+1
+1
+1
+1
+2
+1
+1
+""".split()))
+
+n_ = 2
+
+print(f"n1 = {n1}")
+print(f"n2 = {n2}")
+print(f"N1 = {N1}")
+print(f"N2 = {N2}")
+print(f"n` = {n_}\n")
+
+n = n1 + n2
+N = N1 + N2
+N_ = n1*log(n1, 2) + n2 * log(n2, 2)
+V = N * log(n, 2)
+V_ = (n_ + 2) * log(n_ + 2, 2)
+L = V_ / V
+
+print(f"n = {n}")
+print(f"N = {N}")
+print(f"N` = {N_}")
+print(f"V = {V}")
+print(f"V` = {V_}")
+print(f"L = {L}\n")
+
+
+D = (n1 / 2) * (N2 / n2)
+H = D * V
+T = H / 18
+
+print(f"D = {D}")
+print(f"H = {H}")
+print(f"T = {T} (с)")
+print(f"~ {T / 60} минут")
