@@ -1,7 +1,3 @@
-#define COLUMNS_NUM 7  // Количество столбцов
-#define COLUMNS_SIZE 11  // Ширина строки в символах
-
-
 void make_table(const char** row, char mode = 'a') {
     // Функция для отрисовки строки таблицы
     // row: массив указателей на слова, которые нужно вывести
@@ -25,8 +21,8 @@ void make_table(const char** row, char mode = 'a') {
         // Теперь выводим слова
         printf("%c", edge[2]);
         for (int w = 0; w < COLUMNS_NUM; w++) {
-            const char* cur_word = row[w];    // Текущее слово
-            int word_len = strlen(cur_word);  // Его длина
+            const char* cur_word = row[w];      // Текущее слово
+            int word_len = mystrlen(cur_word);  // Его длина
             if (word_len >= COLUMNS_SIZE)  // Если слово не помещается в столбик
                 for (int i = 0; i < COLUMNS_SIZE; i++)
                     printf("%c", cur_word[i]);  // Выводим его посимвольно
@@ -50,8 +46,8 @@ void make_table(const char** row, char mode = 'a') {
         // Добавляем слова
         printf("%c", edge[2]);
         for (int w = 0; w < COLUMNS_NUM; w++) {
-            const char* cur_word = row[w];    // Текущее слово
-            int word_len = strlen(cur_word);  // Его длина
+            const char* cur_word = row[w];      // Текущее слово
+            int word_len = mystrlen(cur_word);  // Его длина
             if (word_len >= COLUMNS_SIZE)  // Если слово не помещается в столбик
                 for (int i = 0; i < COLUMNS_SIZE; i++)
                     printf("%c", cur_word[i]);  // Выводим его посимвольно
@@ -85,8 +81,8 @@ void make_table(const char** row, char mode = 'a') {
         // Теперь выводим слова
         printf("%c", edge[2]);
         for (int w = 0; w < COLUMNS_NUM; w++) {
-            const char* cur_word = row[w];    // Текущее слово
-            int word_len = strlen(cur_word);  // Его длина
+            const char* cur_word = row[w];      // Текущее слово
+            int word_len = mystrlen(cur_word);  // Его длина
             if (word_len >= COLUMNS_SIZE)  // Если слово не помещается в столбик
                 for (int i = 0; i < COLUMNS_SIZE; i++)
                     printf("%c", cur_word[i]);  // Выводим его посимвольно
