@@ -1,3 +1,7 @@
+#define COLUMNS_NUM 7  // Количество столбцов
+#define COLUMNS_SIZE 11  // Ширина строки в символах
+
+
 void make_table(const char** row, char mode = 'a') {
     // Функция для отрисовки строки таблицы
     // row: массив указателей на слова, которые нужно вывести
