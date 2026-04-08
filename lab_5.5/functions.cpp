@@ -1,170 +1,366 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
+#include "functions.h"  // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё
+#include <conio.h>
 
-#include "functions.h"
+#include "structure.h"
 
 
-// Сохранение ввода в переменную и первичная обработка
-int input(char** buffer, int len, int dynamic) {
-    /*
-    buffer: указатель на строку, в которую нужно записать ввод
-    len: длина ввода (без учёта '\0', т.е. выделяется len + 1 памяти)
-    dynamic: нужно ли выделить память на строку (0, если для buffer уже выделена память - 1, если память не выделена)
-
-    Возвращает:
-        1: пустая строка (сразу же нажат "Enter")
-        0: успешное чтение
-        -1: ошибка выделения памяти
-    */
-    if (dynamic) {  // Выделение памяти, если нужно
-        *buffer = (char*)calloc(len + 1, sizeof(char));
-        if (*buffer == NULL) return -1;  // Не хватило памяти
-    }
-
-    fgets(*buffer, len + 1, stdin);
-    // Передаём len + 1, чтобы fgets получал len символов и после ставил '\0'
-
-    if ((*buffer)[0] == '\n') {  // Если пользователь сразу закончил ввод
-        if (dynamic) free(*buffer);
-        return 1;
-    }
-
-    // Очищаем вводной поток, если строчка не влезла
-    if ((*buffer)[strlen(*buffer) - 1] != '\n')
-        while (getchar() != '\n');
-    else  // Удаляем '\n' с конца
-        (*buffer)[strlen(*buffer) - 1] = '\0';
-
-    return 0;
+// Р’РІРѕРґ РїРѕР»СЏ fnum
+int input_fnum(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ РЅРѕРјРµСЂ СЂРµР№СЃР°: ");
+	int result;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	do {
+		result = int_input(&(*pointer).fnum);
+		if (result > 2) printf("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ. Р’РІРµРґРёС‚Рµ РЅРѕРјРµСЂ СЂРµР№СЃР°: ");
+	} while (result > 1);
+	return result;
 }
 
-// Безопасный ввод int
-int int_input(int* buffer) {
-    /*
-    buffer: указатель на int, в который нужно записать ввод
-
-    Возвращает:
-        0: успешное чтение
-        1: выход из ввода по "###"
-        2: введена пустая строка
-        3: есть непрочитанный символ
-        4: значение ввода выходит за границы int
-    */
-    char user_input[33];  // Буфер для ввода пользователя
-    fgets(user_input, 33, stdin);  // Ввод пользователя
-    // Очищаем вводной поток, если строчка не влезла
-    if (user_input[strlen(user_input) - 1] != '\n')
-        while (getchar() != '\n');
-    else  // Удаляем '\n' с конца
-        user_input[strlen(user_input) - 1] = '\0';
-
-    int result = 0;  // Результат выполнения функции
-    long num;  // Число пользователя
-    // Проверяем на выход из ввода "###" - результат 1
-    if (!strcmp(user_input, "###")) result = 1;
-    else {
-        // Переводим в int
-        char* endptr;  // Указатель на первый непрочитанный символ
-        num = strtol(user_input, &endptr, 10);
-        // Если есть непрочитанный символ - результат 3
-        if (*endptr != '\0') result = 3;
-        // Если строка пустая - результат 2
-        else if (endptr == user_input) result = 2;
-        // Если значение выходит за границы - результат 4
-        else if (num <= INT_MIN || INT_MAX <= num) result = 4;
-    }
-    if (!result) *buffer = (int)num;
-    return result;
+// Р’РІРѕРґ РїРѕР»СЏ name
+int input_name(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ С‚РёРї СЃР°РјРѕР»С‘С‚Р°: ");
+	int result;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	char user_input[16];  // Р‘СѓС„РµСЂ РґР»СЏ РІРІРѕРґР°
+	char* p_input = user_input;  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ
+	do result = input(&p_input);
+	while (result);  // Р’РІРѕРґ, РїРѕРєР° РЅРµ РїРѕР»СѓС‡РёРј РЅРµРїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ
+	result = !strcmp(user_input, "###");
+	if (result == 0) strcpy((*pointer).name, user_input);
+	return result;
 }
 
-// Безопасный ввод double
-int double_input(double* buffer) {
-    /*
-    buffer: указатель на double, в который нужно записать ввод
-
-    Возвращает:
-        0: успешное чтение
-        1: выход из ввода по "###"
-        2: введена пустая строка
-        3: есть непрочитанный символ
-        4: значение ввода выходит за границы double
-    */
-    char user_input[33];  // Буфер для ввода пользователя
-    fgets(user_input, 33, stdin);  // Ввод пользователя
-    // Очищаем вводной поток, если строчка не влезла
-    if (user_input[strlen(user_input) - 1] != '\n')
-        while (getchar() != '\n');
-    else  // Удаляем '\n' с конца
-        user_input[strlen(user_input) - 1] = '\0';
-
-    int result = 0;  // Результат выполнения функции
-    double num;  // Число пользователя
-    // Проверяем на выход из ввода "###" - результат 1
-    if (!strcmp(user_input, "###")) result = 1;
-    else {
-        // Переводим в double
-        char* endptr;  // Указатель на первый непрочитанный символ
-        num = strtod(user_input, &endptr);
-        // Если есть непрочитанный символ - результат 3
-        if (*endptr != '\0') result = 3;
-        // Если строка пустая - результат 2
-        else if (endptr == user_input) result = 2;
-        // Если значение выходит за границы - результат 4
-        else if (num == HUGE_VAL || num == -HUGE_VAL) result = 4;
-    }
-    if (!result) *buffer = num;
-    return result;
+// Р’РІРѕРґ РїРѕР»СЏ dest
+int input_dest(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ РїСѓРЅРєС‚ РЅР°Р·РЅР°С‡РµРЅРёСЏ: ");
+	int result;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	char user_input[16];  // Р‘СѓС„РµСЂ РґР»СЏ РІРІРѕРґР°
+	char* p_input = user_input;  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ
+	do result = input(&p_input);
+	while (result);  // Р’РІРѕРґ, РїРѕРєР° РЅРµ РїРѕР»СѓС‡РёРј РЅРµРїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ
+	result = !strcmp(user_input, "###");
+	if (result == 0) strcpy((*pointer).dest, user_input);
+	return result;
 }
 
-// Безопасный ввод массива цифр
-int input_number_list(int list[], int *len, int start, int end) {
-    /*
-    list: список для хранения цифр
-    len: указатель на переменную, в которую сохраним длину массива
-    start: минимальная цифра массива
-    end: максимальная цифра массива
+// Р’РІРѕРґ РїРѕР»СЏ days
+int input_days(Flight* pointer) {
+	int days[7];   // РњР°СЃСЃРёРІ РЅРѕРјРµСЂРѕРІ РґРЅРµР№
+	int last_day = 0;  // РРЅРґРµРєСЃ РїРѕСЃР»РµРґРЅРµРіРѕ СЌР»РµРјРµРЅС‚Р° РјР°СЃСЃРёРІР°
+	printf("\nР’РІРµРґРёС‚Рµ РґРЅРё РѕС‚РїСЂР°РІР»РµРЅРёСЏ С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ: ");
+	int result = 0;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	char user_input[16];  // Р‘СѓС„РµСЂ РґР»СЏ РІРІРѕРґР°
+	char* p_input = user_input;  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ
+	do {
+		if (result == 3) printf("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ. "
+					"Р’РІРµРґРёС‚Рµ РґРЅРё РѕС‚РїСЂР°РІР»РµРЅРёСЏ С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ: ");
+		result = input_number_list(days, &last_day);
+		if (result == 1) return 1;  // Р—Р°РєРѕРЅС‡РёС‚СЊ РІРІРѕРґ
+	} while (result);
+	// РЎРѕСЂС‚РёСЂРѕРІРєР° РїСѓР·С‹СЂСЊРєРѕРј
+	for (int k = 1; k < last_day; k++)
+		for (int i = 0; i < last_day - k; i++)
+			if (days[i] > days[i + 1]) {
+				int buffer = days[i];
+				days[i] = days[i + 1];
+				days[i + 1] = buffer;
+			}
+	// Р—Р°РїРёСЃСЊ РІ СЃС‚СЂСѓРєС‚СѓСЂСѓ
+	for (int i = 0; i < last_day; i++)
+		(*pointer).days[i] = days[i];
+	// Р’СЃС‘ РѕСЃС‚Р°Р»СЊРЅРѕРµ Р·Р°РїРѕР»РЅСЏРµРј РЅСѓР»СЏРјРё
+	for (int i = last_day; i < 7; i++)
+		(*pointer).days[i] = 0;
+	return 0;
+}
 
-    Возвращает:
-        0: успешное чтение
-        1: выход из ввода по "###"
-        2: введена пустая строка
-        3: некорректный ввод
-    */
-    char user_input[20];  // Буфер для ввода
-    char* p_input = user_input;  // Указатель на буфер
+// Р’РІРѕРґ РїРѕР»СЏ ***_time
+int input_time(Flight* pointer, int field) {
+	// РЎС‚СЂРѕРєР° РЅР° РІС‹РІРѕРґ
+	const char* info[] = { "Р’РІРµРґРёС‚Рµ РІСЂРµРјСЏ РІС‹Р»РµС‚Р°: ",
+							"Р’РІРµРґРёС‚Рµ РІСЂРµРјСЏ РїСЂРёР»С‘С‚Р°: " };
+	int time[2];   // РњР°СЃСЃРёРІ РґР»СЏ РІСЂРµРјРµРЅРё (С‡Р°СЃС‹ Рё РјРёРЅСѓС‚С‹)
+	printf("\n%s", info[field]);
+	int result = 0;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	char user_input[16];  // Р‘СѓС„РµСЂ РґР»СЏ РІРІРѕРґР°
+	char* p_input = user_input;  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ
+	do {
+		if (result) printf("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ. %s", info[field]);
+		do result = input(&p_input);
+		while (result);  // Р’РІРѕРґ, РїРѕРєР° РЅРµ РїРѕР»СѓС‡РёРј РЅРµРїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ
+		if (!strcmp(user_input, "###")) return 1;  // Р—Р°РєРѕРЅС‡РёС‚СЊ РІРІРѕРґ
+		// РџСЂРѕРІРµСЂРёРј РЅР° Р»РёС€РЅРёРµ СЃРёРјРІРѕР»С‹
+		if (strcspn(user_input, " .:0123456789")) { result = 1; continue; }
+		char* parts[2];  // Р Р°Р·РґРµР»РёРј РІРІРѕРґ РЅР° РЅРµСЃРєРѕР»СЊРєРѕ С‡Р°СЃС‚РµР№
+		parts[0] = strtok(user_input, " .:");
+		parts[1] = strtok(NULL, " .:");
+		// РЎС‚СЂРѕРєР° РґРѕР»Р¶РЅР° РїРѕРґРµР»РёС‚СЊСЃСЏ РЅР° РґРІРµ С‡Р°СЃС‚Рё, Р° С‚СЂРµС‚СЊРµР№ Р±С‹С‚СЊ NULL
+		if ((parts[1] == NULL) || (strtok(NULL, " .:") != NULL)) { result = 1; continue; }
+		// Р”Р»РёРЅР° РїРµСЂРІРѕР№ С‡Р°СЃС‚Рё РґРѕР»Р¶РЅР° Р±С‹С‚СЊ 1 РёР»Рё 2
+		switch (strlen(parts[0])) {
+		case 1: { time[0] = parts[0][0] - '0'; break; }
+		case 2: { time[0] = (parts[0][0] - '0') * 10 + parts[0][1] - '0'; break; }
+		default: { result = 1; break; }
+		}
+		// Р”Р»РёРЅР° РІС‚РѕСЂРѕР№ РІСЃРµРіРґР° 2
+		if (strlen(parts[1]) != 2) { result = 1; continue; }
+		time[1] = (parts[1][0] - '0') * 10 + parts[1][1] - '0';
+		// РџСЂРѕРІРµСЂРёРј РЅР° РєРѕСЂСЂРµРєС‚РЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ
+		if (time[0] > 23 || time[1] > 59) result = 1;
+	} while (result);
+	switch (field) {
+	case 0: { (*pointer).dep_time = time[0] * 60 + time[1]; break; }
+	case 1: { (*pointer).arr_time = time[0] * 60 + time[1]; break; }
+	}
+	return 0;
+}
 
-    // Если строка пустая - результат 2
-    if (input(&p_input, 19)) return 2;
-    // Проверяем на выход из ввода "###" - результат 1
-    if (!strcmp(user_input, "###")) return 1;  // Закончить ввод
+// Р’РІРѕРґ РїРѕР»СЏ price
+int input_price(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ С†РµРЅСѓ Р±РёР»РµС‚Р°: ");
+	int result;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР°
+	do {
+		result = double_input(&(*pointer).price);
+		if (result > 2) printf("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ. Р’РІРµРґРёС‚Рµ С†РµРЅСѓ Р±РёР»РµС‚Р°: ");
+	} while (result > 1 || (*pointer).price < 0);
+	return result;
+}
 
-    // Сохраним все допустимые цифры
-    char symbols[13];  // Массив всех допустимых цифр
-    int last_ind = 0;  // Индекс последнего элемента массива
-    for (int i = start; i <= end && last_ind < 10; i++)
-        symbols[last_ind++] = '0' + i;
-    symbols[last_ind++] = ' '; symbols[last_ind++] = ','; symbols[last_ind++] = '\0';
-    last_ind = 0;  // Используем этот счётчик ещё раз в будущем
-    
-    // Проверка на лишние символы - результат 3
-    if (strspn(user_input, symbols) != strlen(user_input)) return 3;
-    char* number;  // Указатель на цифру для strtok
-    number = strtok(user_input, " ,");
-    if ((number == NULL) || (strlen(number) > 1)) return 3;
-    list[last_ind++] = *number - '0';
-    while ((number = strtok(NULL, " ,")) != NULL) {
-        if (strlen(number) > 1) return 3;
-        int cur_number = *number - '0';
-        // Проверим, есть ли эта цифра в списке
-        int in_list = 0;
-        for (int i = 0; i < last_ind; i++)
-            if (list[i] == cur_number) in_list = 1;
-        if (!in_list) list[last_ind++] = cur_number;
-    }
-    *len = last_ind;  // Сохраняем длину
-    return 0;
+// Р’РІРѕРґ РїРѕР»РЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂС‹
+int input_structure(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ Р·Р°РїРёСЃСЊ РїРѕ СЃС‚РѕР»Р±С†Р°Рј. "
+		"Р§С‚РѕР±С‹ Р·Р°РєРѕРЅС‡РёС‚СЊ РІРІРѕРґ, РІРІРµРґРёС‚Рµ \"###\"");
+	int result = 0;
+	// Р’РІРѕРґ РІСЃРµС… РїРѕР»РµР№
+	if (input_fnum(pointer) || input_name(pointer) ||
+		input_dest(pointer) || input_days(pointer) ||
+		input_time(pointer, 0) || input_time(pointer, 1) ||
+		input_price(pointer))
+	{
+		printf("\nР’РІРѕРґ Р·Р°РІРµСЂС€С‘РЅ, Р·Р°РїРёСЃСЊ РЅРµ Р±С‹Р»Р° РґРѕР±Р°РІР»РµРЅР°.");
+		result = 1;
+	}
+	else printf("\nР’РІРѕРґ Р·Р°РІРµСЂС€С‘РЅ, Р·Р°РїРёСЃСЊ РґРѕР±Р°РІР»РµРЅР° РІ С‚Р°Р±Р»РёС†Сѓ.");
+	return result;
+}
+
+// Р’С‹РІРѕРґ РѕРґРЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂС‹
+void print_structure(Flight flight) {
+	// РџРѕР»СѓС‡РёРј РґР»РёРЅС‹ РєР°Р¶РґРѕРіРѕ РїРѕР»СЏ
+	int len_fnum = 1;
+	if (flight.fnum) len_fnum = log10(flight.fnum) + 1;
+	int len_name = strlen(flight.name);
+	int len_dest = strlen(flight.dest);
+	int len_dep_time = (flight.dep_time / 60 >= 10) + 1;
+	int len_arr_time = (flight.arr_time / 60 >= 10) + 1;
+	int len_price = 4;
+	if (flight.price > 0) len_price = log10(flight.price) + 1 + 3;
+	int len_days = 0;
+	for (int i = 0; flight.days[i] && i < 7; i++)
+		len_days += 2;
+	len_days -= 1;
+	// РўРµРїРµСЂСЊ РІС‹РІРµРґРµРј РєР°Р¶РґРѕРµ РїРѕР»Рµ
+	// РќРѕРјРµСЂ СЂРµР№СЃР°
+	printf("|"); for (int i = 0; i < 7 - len_fnum / 2; i++) printf(" ");
+	printf("%d", flight.fnum);
+	for (int i = 0; i < (7 - (len_fnum - 1) / 2); i++) printf(" ");
+	// РўРёРї СЃР°РјРѕР»С‘С‚Р°
+	printf("|"); for (int i = 0; i < 7 - len_name / 2; i++) printf(" ");
+	printf("%s", flight.name);
+	for (int i = 0; i < 7 - (len_name - 1) / 2; i++) printf(" ");
+	// РџСѓРЅРєС‚ РЅР°Р·РЅР°С‡РµРЅРёСЏ
+	printf("|"); for (int i = 0; i < 7 - len_dest / 2; i++) printf(" ");
+	printf("%s", flight.dest);
+	for (int i = 0; i < 7 - (len_dest - 1) / 2; i++) printf(" ");
+	// Р”РЅРё РѕС‚РїСЂР°РІР»РµРЅРёСЏ
+	printf("|%*c%d", (15 - len_days) / 2, ' ', flight.days[0]);
+	for (int i = 1; flight.days[i] && i < 7; i++) printf(",%d", flight.days[i]);
+	printf("%*c", (16 - len_days) / 2, ' ');
+	// Р’СЂРµРјСЏ РІС‹Р»РµС‚Р°
+	printf("|%*c", 7 - len_dep_time, ' ');
+	printf("%d:%.2d", flight.dep_time / 60, flight.dep_time % 60);
+	printf("%*c", 7 - 2, ' ');
+	// Р’СЂРµРјСЏ РїСЂРёР»С‘С‚Р°
+	printf("|%*c", 7 - len_arr_time, ' ');
+	printf("%d:%.2d", flight.arr_time / 60, flight.arr_time % 60);
+	printf("%*c", 7 - 2, ' ');
+	// Р¦РµРЅР° Р±РёР»РµС‚Р°
+	if (len_price <= 13) {
+		printf("|%*c", 7 - len_price / 2, ' ');
+		printf("%.2lf", flight.price);
+		printf("%*c", 7 - (len_price - 1) / 2, ' ');
+	}
+	else printf("|%9.9e", flight.price);
+	printf("|\n");
+}
+
+// РџРµС‡Р°С‚СЊ РіСЂР°РЅРёС†С‹ С‚Р°Р±Р»РёС†С‹
+void print_edge() {
+	printf("+");
+	for (int i = 1; i < 8 * (16); i++)
+		i % 16 ? printf("-") : printf("+");
+	printf("+\n");
+}
+
+// РџРµС‡Р°С‚СЊ РѕС‚СЃС‚СѓРїР° С‚Р°Р±Р»РёС†С‹
+void print_space() {
+	printf("|");
+	for (int i = 1; i < 8 * (16); i++)
+		i % 16 ? printf(" ") : printf("|");
+	printf("|\n");
+}
+
+// РџРµС‡Р°С‚СЊ С€Р°РїРєРё С‚Р°Р±Р»РёС†С‹
+void print_head() {
+	printf("РЎРїРёСЃРѕРє Р°РІРёР°СЂРµР№СЃРѕРІ:\n");
+	// РЁР°РїРєР° С‚Р°Р±Р»РёС†С‹
+	print_edge();
+	// РџРµСЂРІР°СЏ СЃС‚СЂРѕРєР°
+	printf("|     РќРѕРјРµСЂ     |     РќРѕРјРµСЂ     |      РўРёРї      |     РџСѓРЅРєС‚     "
+		   "|      Р”РЅРё      |     Р’СЂРµРјСЏ     |     Р’СЂРµРјСЏ     |     Р¦РµРЅР°      |\n");
+	// Р’С‚РѕСЂР°СЏ СЃС‚СЂРѕРєР°
+	printf("|   РІ С‚Р°Р±Р»РёС†Рµ   |     СЂРµР№СЃР°     |   СЃР°РјРѕР»С‘С‚Р°    |  РЅР°Р·РЅР°С‡РµРЅРёСЏ   "
+		   "|  РѕС‚РїСЂР°РІР»РµРЅРёСЏ  |    РІС‹Р»РµС‚Р°     |    РїСЂРёР»С‘С‚Р°    |    Р±РёР»РµС‚Р°     |\n");
+	print_edge();
+}
+
+// РЎРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ Р»Рё Р·Р°РїРёСЃСЊ Р·Р°РґР°РЅРЅС‹Рј С„РёР»СЊС‚СЂР°Рј
+int compare_flight(Flight flight, Flight_filter filter) {
+	int is_good = 1;  // Р—Р°РїРёСЃСЊ РёР·РЅР°С‡Р°Р»СЊРЅРѕ РїРѕРґС…РѕРґРёС‚
+	// РЎРІРµСЂСЏРµРј РЅРѕРјРµСЂР° СЂРµР№СЃРѕРІ
+	if (filter.apply[0]) {
+		char flight_fnum[16], filter_fnum[16];
+		_itoa(flight.fnum, flight_fnum, 10);
+		_itoa(filter.fnum, filter_fnum, 10);
+		if (strstr(flight_fnum, filter_fnum) == NULL) is_good = 0;
+
+	}
+	// РЎРІРµСЂСЏРµРј С‚РёРїС‹ СЃР°РјРѕР»С‘С‚РѕРІ
+	if (is_good && filter.apply[1]) {
+		char flight_name[16], filter_name[16];
+		_strlwr(strcpy(flight_name, flight.name));
+		_strlwr(strcpy(filter_name, filter.name));
+		if (strstr(flight_name, filter_name) == NULL) is_good = 0;
+	}
+	// РЎРІРµСЂСЏРµРј РїСѓРЅРєС‚С‹ РЅР°Р·РЅР°С‡РµРЅРёСЏ
+	if (is_good && filter.apply[2]) {
+		char flight_dest[16], filter_dest[16];
+		_strlwr(strcpy(flight_dest, flight.dest));
+		_strlwr(strcpy(filter_dest, filter.dest));
+		if (strstr(flight_dest, filter_dest) == NULL) is_good = 0;
+	}
+	// РЎРІРµСЂСЏРµРј РґРЅРё РѕС‚РїСЂР°РІР»РµРЅРёСЏ
+	if (is_good && filter.apply[3]) {
+		int common = 0;
+		for (int i = 0; i < 7 && filter.days[i]; i++)
+			for (int j = 0; j < 7 && flight.days[j]; j++)
+				if (filter.days[i] == flight.days[j]) common += 1;
+		if (!common) is_good = 0;
+	}
+	// РЎРІРµСЂСЏРµРј РІСЂРµРјСЏ РІС‹Р»РµС‚Р°
+	if (is_good && filter.apply[4]) {
+		if (filter.apply[4] == 1)  // flight > filter
+			if (flight.dep_time <= filter.dep_time) is_good = 0;
+		if (filter.apply[4] == 2)  // flight < filter
+			if (flight.dep_time >= filter.dep_time) is_good = 0;
+		if (filter.apply[4] == 3)  // flight = filter
+			if (flight.dep_time != filter.dep_time) is_good = 0;
+		if (filter.apply[4] == 4)  // flight >= filter
+			if (flight.dep_time < filter.dep_time) is_good = 0;
+		if (filter.apply[4] == 5)  // flight <= filter
+			if (flight.dep_time > filter.dep_time) is_good = 0;
+	}
+	// РЎРІРµСЂСЏРµРј РІСЂРµРјСЏ РїСЂРёР»С‘С‚Р°
+	if (is_good && filter.apply[5]) {
+		if (filter.apply[5] == 1)  // flight > filter
+			if (flight.arr_time <= filter.arr_time) is_good = 0;
+		if (filter.apply[5] == 2)  // flight < filter
+			if (flight.arr_time >= filter.arr_time) is_good = 0;
+		if (filter.apply[5] == 3)  // flight = filter
+			if (flight.arr_time != filter.arr_time) is_good = 0;
+		if (filter.apply[5] == 4)  // flight >= filter
+			if (flight.arr_time < filter.arr_time) is_good = 0;
+		if (filter.apply[5] == 5)  // flight <= filter
+			if (flight.arr_time > filter.arr_time) is_good = 0;
+	}
+	// РЎРІРµСЂСЏРµРј С†РµРЅСѓ Р±РёР»РµС‚Р°
+	if (is_good && filter.apply[6]) {
+		if (filter.apply[6] == 1)  // flight > filter
+			if (flight.price <= filter.price) is_good = 0;
+		if (filter.apply[6] == 2)  // flight < filter
+			if (flight.price >= filter.price) is_good = 0;
+		if (filter.apply[6] == 3)  // flight = filter
+			if (flight.price != filter.price) is_good = 0;
+		if (filter.apply[6] == 4)  // flight >= filter
+			if (flight.price < filter.price) is_good = 0;
+		if (filter.apply[6] == 5)  // flight <= filter
+			if (flight.price > filter.price) is_good = 0;
+	}
+	return is_good;
+}
+
+// Р’С‹РІРѕРґ РјР°СЃСЃРёРІР° СЃС‚СЂСѓРєС‚СѓСЂ
+int print_structures(Flight* flights, int len, Flight_filter filter) {
+	if (len == 0) { printf("РўР°Р±Р»РёС†Р° РЅР° РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚ РїСѓСЃС‚Р°СЏ."); return -1; }
+	int counter = 0;
+	for (int line = 0; line < len; line++) {
+		// Р’С‹РІРµРґРµРј РЅРѕРјРµСЂ РІ С‚Р°Р±Р»РёС†Рµ
+		if (!compare_flight(flights[line], filter)) continue;
+		if (!counter) print_head();  // РџРµС‡Р°С‚Р°РµРј РІРµСЂС… С‚Р°Р±Р»РёС†С‹, РµСЃР»Рё РµС‰С‘ РЅРµ РїРµС‡Р°С‚Р°Р»Рё
+		int len_line = log10(line + 1) + 1;
+		printf("|%*c", 7 - len_line / 2, ' ');
+		printf("%d", line + 1);
+		printf("%*c", 7 - (len_line - 1) / 2, ' ');
+		print_structure(flights[line]);
+		print_edge();
+		counter += 1;
+	}
+	if (!counter) printf("\nРќРµС‚ Р·Р°РїРёСЃРµР№, СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёС… Р·Р°РґР°РЅРЅС‹Рј С„РёР»СЊС‚СЂР°Рј.");
+	return counter;
+}
+
+// РР·РјРµРЅРµРЅРёРµ РѕРґРЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂС‹
+int edit_structure(Flight* pointer) {
+	printf("\nР’РІРµРґРёС‚Рµ РЅРѕРјРµСЂР° СЃС‚РѕР»Р±С†РѕРІ, РєРѕС‚РѕСЂС‹Рµ РІС‹ С…РѕС‚РёС‚Рµ РёР·РјРµРЅРёС‚СЊ, С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ:\n");
+	printf("1 - РќРѕРјРµСЂ СЂРµР№СЃР°\n");
+	printf("2 - РўРёРї СЃР°РјРѕР»С‘С‚Р°\n");
+	printf("3 - РџСѓРЅРєС‚ РЅР°Р·РЅР°С‡РµРЅРёСЏ\n");
+	printf("4 - Р”РЅРё РѕС‚РїСЂР°РІР»РµРЅРёСЏ\n");
+	printf("5 - Р’СЂРµРјСЏ РІС‹Р»РµС‚Р°\n");
+	printf("6 - Р’СЂРµРјСЏ РїСЂРёР»С‘С‚Р°\n");
+	printf("7 - Р¦РµРЅР° Р±РёР»РµС‚Р°\n");
+	int cols[7];   // РњР°СЃСЃРёРІ РЅРѕРјРµСЂРѕРІ СЃС‚РѕР»Р±С†РѕРІ
+	int last_ind = 0;  // РРЅРґРµРєСЃ РїРѕСЃР»РµРґРЅРµРіРѕ СЌР»РµРјРµРЅС‚Р° РјР°СЃСЃРёРІР°
+	int cols_res = 0;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР° РјР°СЃСЃРёРІР° СЃС‚РѕР»Р±С†РѕРІ
+	char user_input[16];  // Р‘СѓС„РµСЂ РґР»СЏ РІРІРѕРґР°
+	char* p_input = user_input;  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ
+	do {
+		if (cols_res == 3) printf("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ. "
+			"\nР’РІРµРґРёС‚Рµ РЅРѕРјРµСЂР° СЃС‚РѕР»Р±С†РѕРІ, РєРѕС‚РѕСЂС‹Рµ РІС‹ С…РѕС‚РёС‚Рµ РёР·РјРµРЅРёС‚СЊ, С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ: ");
+		cols_res = input_number_list(cols, &last_ind);
+	} while (cols_res > 1);
+	if (cols_res == 1) return 2;  // Р•СЃР»Рё РЅСѓР¶РЅРѕ РѕСЃС‚Р°РЅРѕРІРёС‚СЊ РІРІРѕРґ
+	// РЎРѕСЂС‚РёСЂРѕРІРєР° РїСѓР·С‹СЂСЊРєРѕРј
+	for (int k = 1; k < last_ind; k++)
+		for (int i = 0; i < last_ind - k; i++)
+			if (cols[i] > cols[i + 1]) {
+				int buffer = cols[i];
+				cols[i] = cols[i + 1];
+				cols[i + 1] = buffer;
+			}
+	// РњРµРЅСЏРµРј СЃС‚РѕР»Р±С†С‹
+	int change_res = 0;  // Р РµР·СѓР»СЊС‚Р°С‚ РІРІРѕРґР° РЅРѕРІС‹С… Р·РЅР°С‡РµРЅРёР№
+	for (int i = 0; i < last_ind && !change_res; i++)
+		if (cols[i] == 1) change_res = input_fnum(pointer);
+		else if (cols[i] == 2) change_res = input_name(pointer);
+		else if (cols[i] == 3) change_res = input_dest(pointer);
+		else if (cols[i] == 4) change_res = input_days(pointer);
+		else if (cols[i] == 5) change_res = input_time(pointer, 0);
+		else if (cols[i] == 6) change_res = input_time(pointer, 1);
+		else if (cols[i] == 7) change_res = input_price(pointer);
+	return change_res;  // Р•СЃР»Рё РІРІРѕРґ РїРѕР»РЅС‹Р№, С‚Рѕ 0 - РёРЅР°С‡Рµ 1
 }
