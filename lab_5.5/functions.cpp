@@ -25,12 +25,16 @@ int input_fnum(Flight* pointer) {
 int input_name(Flight* pointer) {
 	printf("\nВведите тип самолёта: ");
 	int result;  // Результат ввода
-	char user_input[16];  // Буфер для ввода
+	char user_input[TEXT_LEN];  // Буфер для ввода
 	char* p_input = user_input;  // Указатель на буфер
-	do result = input(&p_input);
+	do result = input(&p_input, TEXT_LEN - 1);
 	while (result);  // Ввод, пока не получим непустую строку
 	result = !strcmp(user_input, "###");
-	if (result == 0) strcpy((*pointer).name, user_input);
+	if (result == 0) {
+		strcpy((*pointer).name, user_input);
+		if (strlen(user_input) == TEXT_LEN - 1)
+			printf("Строчка не влезла целиком. Сохранено: %s", user_input);
+	}
 	return result;
 }
 
@@ -38,12 +42,16 @@ int input_name(Flight* pointer) {
 int input_dest(Flight* pointer) {
 	printf("\nВведите пункт назначения: ");
 	int result;  // Результат ввода
-	char user_input[16];  // Буфер для ввода
+	char user_input[TEXT_LEN];  // Буфер для ввода
 	char* p_input = user_input;  // Указатель на буфер
-	do result = input(&p_input);
+	do result = input(&p_input, TEXT_LEN - 1);
 	while (result);  // Ввод, пока не получим непустую строку
 	result = !strcmp(user_input, "###");
-	if (result == 0) strcpy((*pointer).dest, user_input);
+	if (result == 0) {
+		strcpy((*pointer).dest, user_input);
+		if (strlen(user_input) == TEXT_LEN - 1)
+			printf("Строчка не влезла целиком. Сохранено: %s", user_input);
+	}
 	return result;
 }
 
@@ -86,11 +94,11 @@ int input_time(Flight* pointer, int field) {
 	int time[2];   // Массив для времени (часы и минуты)
 	printf("\n%s", info[field]);
 	int result = 0;  // Результат ввода
-	char user_input[16];  // Буфер для ввода
+	char user_input[TEXT_LEN];  // Буфер для ввода
 	char* p_input = user_input;  // Указатель на буфер
 	do {
 		if (result) printf("Некорректный ввод. %s", info[field]);
-		do result = input(&p_input);
+		do result = input(&p_input, TEXT_LEN - 1);
 		while (result);  // Ввод, пока не получим непустую строку
 		if (!strcmp(user_input, "###")) return 1;  // Закончить ввод
 		// Проверим на лишние символы
@@ -170,11 +178,13 @@ void print_structure(Flight flight) {
 	for (int i = 0; i < (7 - (len_fnum - 1) / 2); i++) printf(" ");
 	// Тип самолёта
 	printf("|"); for (int i = 0; i < 7 - len_name / 2; i++) printf(" ");
-	printf("%s", flight.name);
+	//printf("%s", flight.name);
+	for (int i = 0; flight.name[i] && i < 15; i++) printf("%c", flight.name[i]);
 	for (int i = 0; i < 7 - (len_name - 1) / 2; i++) printf(" ");
 	// Пункт назначения
 	printf("|"); for (int i = 0; i < 7 - len_dest / 2; i++) printf(" ");
-	printf("%s", flight.dest);
+	//printf("%s", flight.dest);
+	for (int i = 0; flight.dest[i] && i < 15; i++) printf("%c", flight.dest[i]);
 	for (int i = 0; i < 7 - (len_dest - 1) / 2; i++) printf(" ");
 	// Дни отправления
 	printf("|%*c%d", (15 - len_days) / 2, ' ', flight.days[0]);
