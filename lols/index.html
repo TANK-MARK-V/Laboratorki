@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бесконечное суммирование — ряд Тейлора</title>
+    <style>
+        /* ---------- Базовые переменные и сброс ---------- */
+        :root {
+            --bg: #0f172a;            /* Фон страницы */
+            --panel: #1e293b;          /* Фон карточек */
+            --panel-soft: #273449;     /* Мягкий фон внутри карточек */
+            --border: #334155;         /* Границы */
+            --text: #e2e8f0;           /* Основной текст */
+            --muted: #94a3b8;          /* Приглушённый текст */
+            --accent: #38bdf8;         /* Акцент (кнопки, ссылки) */
+            --accent-hover: #0ea5e9;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(1200px 600px at 10% -10%, #1e3a8a33, transparent),
+                radial-gradient(1000px 500px at 110% 110%, #0ea5e933, transparent),
+                var(--bg);
+            display: flex;
+            justify-content: center;
+            padding: 40px 16px;
+        }
+
+        /* ---------- Контейнер ---------- */
+        .container {
+            width: 100%;
+            max-width: 920px;
+        }
+
+        /* ---------- Заголовок ---------- */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        /* ---------- Карточки ---------- */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 16px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card h2::before {
+            content: "";
+            width: 4px;
+            height: 18px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        /* ---------- Меню действий ---------- */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+            color: var(--text);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.05s;
+        }
+
+        .btn:hover {
+            background: #31435c;
+            border-color: var(--accent);
+        }
+
+        .btn:active { transform: translateY(1px); }
+
+        .btn--primary {
+            background: linear-gradient(135deg, var(--accent), #818cf8);
+            border-color: transparent;
+            color: #0b1220;
+            font-weight: 600;
+        }
+
+        .btn--primary:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #6366f1);
+        }
+
+        /* ---------- Форма ---------- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .field input {
+            background: var(--panel-soft);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px #38bdf833;
+        }
+
+        .hint {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .hint code {
+            background: var(--panel-soft);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+        }
+
+        /* ---------- Сообщения ---------- */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+        }
+
+        .message--error {
+            background: #f871711a;
+            border-color: var(--danger);
+            color: #fecaca;
+        }
+
+        .message--info {
+            background: #34d3991a;
+            border-color: var(--success);
+            color: #bbf7d0;
+        }
+
+        .message--warning {
+            background: #fbbf241a;
+            border-color: var(--warning);
+            color: #fde68a;
+        }
+
+        /* ---------- Таблица результатов ---------- */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+        }
+
+        thead th {
+            background: var(--panel-soft);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: right;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        thead th:first-child { text-align: center; }
+
+        tbody td {
+            padding: 9px 16px;
+            text-align: right;
+            border-bottom: 1px solid #33415566;
+            white-space: nowrap;
+        }
+
+        tbody td:first-child {
+            text-align: center;
+            color: var(--muted);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        tbody tr:hover { background: #38bdf80d; }
+
+        .diverged {
+            color: var(--danger);
+            font-style: italic;
+        }
+
+        /* ---------- Подвал ---------- */
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        /* ---------- Адаптивность ---------- */
+        @media (max-width: 560px) {
+            body { padding: 20px 10px; }
+            .card { padding: 18px; }
+            .actions { flex-direction: column; }
+            .btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Заголовок -->
+        <header class="header">
+            <h1>Бесконечное суммирование</h1>
+            <p>Разложение функции в ряд Тейлора и сравнение с кубическим корнем</p>
+        </header>
+
+        <!-- Меню действий -->
+        <section class="card">
+            <h2>Действия</h2>
+            <form method="post">
+                <div class="actions">
+                    {% for i in range(actions|length) %}
+                        <button type="submit" name="action" value="{{ i }}"
+                                class="btn{% if i == 1 %} btn--primary{% endif %}">
+                            {{ i }} — {{ actions[i] }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </form>
+        </section>
+
+        <!-- Форма параметров -->
+        <section class="card">
+            <h2>Параметры расчёта</h2>
+            <form method="post">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="x1">Левая граница x₁</label>
+                        <input id="x1" name="x1" value="{{ form.x1 }}" size="10"
+                               placeholder="например, 0.5" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label for="x2">Правая граница x₂</label>
+                        <input id="x2" name="x2" value="{{ form.x2 }}" size="10"
+                               placeholder="например, 1.5" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label for="h">Шаг h</label>
+                        <input id="h" name="h" value="{{ form.h }}" size="10"
+                               placeholder="например, 0.1" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label for="e">Точность e</label>
+                        <input id="e" name="e" value="{{ form.e }}" size="10"
+                               placeholder="например, 0.0001" autocomplete="off">
+                    </div>
+                </div>
+                <p class="hint">
+                    Рекомендуется <code>x₁ &gt; 0</code> и <code>x₂ &lt; 2</code>.
+                    Точность должна лежать в интервале <code>0 &lt; e &lt; 1</code>,
+                    шаг — <code>0 &lt; h ≤ x₂ − x₁</code>.
+                </p>
+                <div class="actions" style="margin-top: 16px;">
+                    <button type="submit" name="action" value="1" class="btn btn--primary">
+                        Выполнить расчёт
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Результаты -->
+        {% if result %}
+            {% if result.error %}
+                <div class="message message--error">{{ result.error }}</div>
+            {% endif %}
+
+            {% if result.info %}
+                <div class="message message--info">{{ result.info }}</div>
+            {% endif %}
+
+            {% if result.rows %}
+                <section class="card">
+                    <h2>Результаты</h2>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in table_headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in result.rows %}
+                                    <tr>
+                                        <td>{{ "%.*f" | format(result.right, row.x) }}</td>
+                                        {% if row.y is none %}
+                                            <td class="diverged" title="Ряд не сходится">—</td>
+                                        {% else %}
+                                            <td>{{ "%.*f" | format(result.right, row.y) }}</td>
+                                        {% endif %}
+                                        <td>{{ "%.*f" | format(result.right, row.root) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+        {% endif %}
+
+        <!-- Подвал -->
+        <footer class="footer">
+            Лабораторная работа «Бесконечное суммирование» · Python + Flask
+        </footer>
+    </div>
+</body>
+</html>
